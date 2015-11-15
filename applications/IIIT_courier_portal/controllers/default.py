@@ -38,6 +38,8 @@ def new_courier():
     mark_not_empty(sn.courier)
     sn.courier.time_stamp.default=request.now
     sn.courier.time_stamp.writable=False
+    sn.courier.Collected.writable=False
+    sn.courier.Collected.readable=False
     sn.courier.time_stamp.readable=False
     form=SQLFORM(sn.courier).process()
     if form.accepted:
