@@ -7,4 +7,5 @@ sn.define_table('courier',
                 Field('Courier_Company',requires=IS_NOT_EMPTY()),
                 Field('Hostel',requires=IS_IN_SET({'OBH','OBH-D','OBH-E','NBH','BAKUL','GH','GHEB','NBH Cellar'})),
                 Field('time_stamp','datetime',requires=IS_NOT_EMPTY()),
-                Field('Collected','boolean'))
+                Field('Collected','boolean'),
+                Field('room_no','integer'))
