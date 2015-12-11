@@ -9,6 +9,19 @@
 ## - api is an example of Hypermedia API support and access control
 #########################################################################
 
+###CAS LOGIN
+
+CAS.login_url='https://login.iiit.ac.in/cas/login'
+CAS.check_url='https://login.iiit.ac.in/cas/validate'
+CAS.logout_url='https://login.iiit.ac.in/cas/logout'
+CAS.my_url='127.0.0.1:8000/IIIT_courier_portal/default/manage'
+
+#########################################################################
+# To make sure everyone logins
+#if not session.token and not request.function=='login':
+ #       redirect(URL(r=request, f='login'))
+
+
 @auth.requires_login()
 def index():
     nam=sn().select(sn.courier.ALL).as_list()
@@ -430,3 +443,43 @@ def api():
         '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},
         }
     return Collection(db).process(request,response,rules)
+
+
+#############################################################
+###lOGIN SIGNUP AND VALIDATION USING cas
+
+
+
+def login():
+    """
+        Method to fetch the user detials from CAS
+        Redirects to respective user interface
+        """
+    session.login = 0
+    session.token = CAS.login(request)
+    
+    user_email=session.token
+    
+    session.email = user_email
+    session.login = 2
+    redirect(URL('default','index'))
+
+
+    # check if admin
+    #is_admin = db(db.Admins.email==user_email).select(db.Admins.ALL)
+    #if is_admin:
+    #    session.login = 1
+    #    session.username = is_admin[0]['name']
+    #    redirect(URL('admin','index'))
+    #else:
+    #    session.login = 2
+    #    redirect(URL('default','index'))
+
+
+def logout():
+    """
+    Logout of CAS server.
+    """
+    session.token = None
+    session.login = 0
+    CAS.logout()

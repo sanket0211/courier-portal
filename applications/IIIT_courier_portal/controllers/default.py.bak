@@ -9,8 +9,19 @@
 ## - api is an example of Hypermedia API support and access control
 #########################################################################
 
-@auth.requires_login()
+###CAS LOGIN
+
+CAS.login_url='https://login.iiit.ac.in/cas/login'
+CAS.check_url='https://login.iiit.ac.in/cas/validate'
+CAS.logout_url='https://login.iiit.ac.in/cas/logout'
+CAS.my_url='127.0.0.1:8000/IIIT_courier_portal/default/manage'
+
+#########################################################################
+# To make sure everyone logins
+
 def index():
+    
+    session.flash=session.token
     nam=sn().select(sn.courier.ALL).as_list()
     total=len(nam)
     coll=0
@@ -20,11 +31,11 @@ def index():
             coll=coll+1
         else:
             notcoll=notcoll+1
-    
-    ##redirect(URL('manage'))
+
+
     return locals()
 
-@auth.requires_membership('managers')
+
 def new_courier():
     nam=sn().select(sn.courier.ALL).as_list()
     total=len(nam)
@@ -38,17 +49,21 @@ def new_courier():
     mark_not_empty(sn.courier)
     sn.courier.time_stamp.default=request.now
     sn.courier.time_stamp.writable=False
+    sn.courier.Collected.writable=False
+    sn.courier.Collected.readable=False
     sn.courier.time_stamp.readable=False
     form=SQLFORM(sn.courier).process()
     if form.accepted:
         session.flash="Entered!"
         redirect(URL('test2'))
     return locals()
-@auth.requires_login()
+
+
+
 def faq():
     return locals()
 
-@auth.requires_membership('managers')
+
 def cash():
     nam=sn().select(sn.courier.ALL).as_list()
     total=len(nam)
@@ -64,13 +79,15 @@ def cash():
         session.flash="Entered!"
         redirect(URL('te'))
     return locals()
-@auth.requires_membership('managers')
+
+
 def userprofileform():
     form=SQLFORM(db.anonymousprofile).process()
     if form.accepted:
         redirect(URL('userprofile'))
     return locals()
-@auth.requires_membership('managers')
+
+
 def userprofile():
     flag=0
     name=db().select(db.anonymousprofile.ALL).as_list()[-1]
@@ -112,12 +129,8 @@ def userprofile():
             contact=i['Contact_No']
             roll=i['Roll_No']
     return locals()
-        
-        
-    
 
-        
-@auth.requires_login()
+
 def profile():
     
     form3=SQLFORM(db.edit1).process()
@@ -177,9 +190,10 @@ def profile():
             contact=i['Contact_No']
             roll=i['Roll_No']
     return locals()
-@auth.requires_login()
+
+
 def profile1():
-    
+
     form3=SQLFORM(db.edit1).process()
     user=auth.user.email
     row=db(db.auth_user.email==user).select().first()
@@ -214,7 +228,7 @@ def profile1():
         redirect(URL('profile'))
     first=auth.user.first_name
     last=auth.user.last_name
-    
+
     #cash1=auth.user.Wallet
     email=auth.user.email
     nam=sn().select(sn.courier.ALL).as_list()
@@ -298,7 +312,8 @@ def test2():
         session.flash="An automated email has been sent to "+ first + " " + last + "."
     redirect(URL('index'))
     return locals()
-@auth.requires_login()
+
+
 def manage():
     nam=sn().select(sn.courier.ALL).as_list()
     total=len(nam)
@@ -428,3 +443,43 @@ def api():
         '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},
         }
     return Collection(db).process(request,response,rules)
+
+
+#############################################################
+###lOGIN SIGNUP AND VALIDATION USING cas
+
+
+
+def login():
+    """
+        Method to fetch the user detials from CAS
+        Redirects to respective user interface
+        """
+    session.login = 0
+    session.token = CAS.login(request)
+    
+    user_email=session.token
+    
+    session.email = user_email
+    session.login = 2
+    redirect(URL('default','index'))
+
+
+    # check if admin
+    #is_admin = db(db.Admins.email==user_email).select(db.Admins.ALL)
+    #if is_admin:
+    #    session.login = 1
+    #    session.username = is_admin[0]['name']
+    #    redirect(URL('admin','index'))
+    #else:
+    #    session.login = 2
+    #    redirect(URL('default','index'))
+
+
+def logout():
+    """
+    Logout of CAS server.
+    """
+    session.token = None
+    session.login = 0
+    CAS.logout()

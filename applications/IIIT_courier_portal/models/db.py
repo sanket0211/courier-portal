@@ -54,6 +54,9 @@ plugins = PluginManager()
 
 auth.settings.extra_fields['auth_user']=[Field('Roll_No','integer',requires=IS_NOT_EMPTY()),Field('Wallet','integer',default='0',requires=IS_INT_IN_RANGE()),Field('Hostel',requires=IS_IN_SET({'OBH','OBH-D','OBH-E','NBH','BAKUL','GH','GHEB','NBH Cellar'})),Field('Room_No',requires=IS_NOT_EMPTY()),Field('Contact_No',requires=IS_MATCH('[1-9][0-9]{9}')),Field('Photo','upload',uploadfield=True,default=os.path.join(request.folder,'static','images','Edit_user-512.png'))]
 
+
+
+
 ##auth=mark_not_empty(db.auth_user)
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)
